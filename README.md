@@ -18,12 +18,16 @@ For both approaches, the set of final exemplar pixels (cluster representatives) 
 # Examples
 
 ## Using `script_GWENN_images.py`
-`flatboad_small.png`, 160x90 pixels, `K = 5`, `nLevel = 4`, 1066 output clusters.
+`flatboad_small.png`, 256x144 pixels, `K = 100`, 82 output clusters.
+
+<img src="./images/results/flatboat/original.png" width="400"> 
+<img src="./images/results/flatboat/segmented.png" width="400"> 
+<img src="./images/results/flatboat/exemplars.png" width="400"> 
 
 ## Using `MR_gwenn.py`
 `colorful_houses_small.png`, 720x1280 pixels, `K = 5`, `nLevel = 4`, 1066 output clusters.
 
-<img src="./images/original.png" width="400"> <img src="./images/segmented.png" width="400"> 
+<img src="./images/results/colorful_houses/original.png" width="400"> <img src="./images/results/colorful_houses/segmented.png" width="400"> 
 
 
 # Requirements
