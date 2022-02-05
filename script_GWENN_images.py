@@ -20,12 +20,11 @@ Please cite:
 
 Created on Fri Jan 28 18:41:44 2022
 
-@author: admincariou
+@author:    Claude Cariou - Univ Rennes/Enssat, CNRS-IETR/MULTIP - Lannion, France
+            claude.cariou@univ-rennes1.fr
 """
 
 import numpy as np
-
-np.random.seed(1234)
 from sklearn.neighbors import NearestNeighbors
 from scipy import stats
 from sklearn.utils.extmath import weighted_mode
@@ -34,25 +33,16 @@ import matplotlib.pyplot as plt
 import load_imgs
 import time
 
-start_time = time.time()
-
-
-
-# # Check
-# data = np.random.rand(64,64,3)
-# data = np.append(data,np.random.rand(64,64,3)+2.,axis=1)
-# data = data*10
-# im = data
-
 # Real images
-impath = "./images" #only one png image
+impath = "./images"
 im = load_imgs.load_imgs(impath)
-im = im[0]
 
+# Choose here the image you wish to segment
+im = im[1]
 
 plt.close("all")
 
-K = 500     #<<<<<<<<<<<<<<< change K if necessary
+K = 100     #<<<<<<<<<<<<<<< change the number of nearest neighbors here
 
 sizx, sizy, nbands = np.shape(im)
 
@@ -60,50 +50,64 @@ N = sizx*sizy
 
 plt.figure()
 plt.imshow(np.uint8(im))
+plt.title('Original image', fontdict=None, loc='center')
 
+start_time = time.time()
+
+# reshape image to data array
 data = np.reshape(im,(N,nbands))
 
+# get KNN distances and indices
 nbrs = NearestNeighbors(n_neighbors=K, algorithm='ball_tree').fit(data)
 dists, neigh = nbrs.kneighbors(data)
 
-dens = np.sum(dists,axis=1)
+# estimate the inverse of the pointwise (local) density
+invdens = np.sum(dists,axis=1) + 1e-16
 
-v = np.argsort(dens)
+# sort the density in descending order and get the coresponding indices
+v = np.argsort(invdens)
 
-labs = np.zeros(N, dtype=np.integer)
-P = np.zeros(N, dtype=np.integer)
+# initialize the label array
+labs = np.zeros(N, dtype=np.int32)
+P = np.zeros(N, dtype=np.int32)
 
+# set the point with highest density as the exemplar of the first cluster
 labs[v[0]] = v[0]
 
+# process the other data points in order of decreasing density
 for k in range(1,N):
     P[v[k-1]] = 1;
     B = neigh[v[k]]
     temp = P[B]
-    temp = B[temp==1]
+    temp = B[temp==1]   # the set of current NNs which have been already processed
 
-    if temp.any():
+    if temp.any():      # if nonempty
         #idx = stats.mode(labs[temp])                   #initial GWENN (IGARSS paper)
-        idx = weighted_mode(labs[temp],1/dens[temp])    #WM-GWENN (better) (RS paper)
+        idx = weighted_mode(labs[temp],1./invdens[temp])    #WM-GWENN (better) (RS paper)
         labs[v[k]] = idx[0]
-    else:
+    else:               # if empty, create a new cluster with its exemplar
         labs[v[k]] = v[k]
 
-uniq,idx = np.unique(labs, return_inverse=True)
-NC = len(uniq)
+# get the final exemplars and their number
+exemplars = np.unique(labs)
+NC = len(exemplars)
 
 print("Number of clusters = ", NC)
 
+# display results
 imexmplrs = data[np.uint32(labs)]//4
-imexmplrs[uniq] = np.array([255, 255, 255])
+imexmplrs[exemplars] = np.array([255, 255, 255])
 imexplrs = np.reshape(imexmplrs,(sizx, sizy, nbands))
 plt.figure()
 plt.imshow(np.uint8(imexplrs))
+plt.title('Cluster exemplars', fontdict=None, loc='center')
 
-imrec = np.reshape(data[np.uint32(labs)],(sizx, sizy, nbands))
+imseg = np.reshape(data[np.uint32(labs)],(sizx, sizy, nbands))
 plt.figure()
-plt.imshow(np.uint8(imrec))
+plt.imshow(np.uint8(imseg))
+plt.title('Segmented image', fontdict=None, loc='center')
 
-MSE = np.mean(np.square(imrec-im))
+MSE = np.mean(np.square(imseg-im))
 PSNR = 10*np.log10(255**2/MSE)
 print("MSE  = ", MSE)
 print("PSNR = ", PSNR)

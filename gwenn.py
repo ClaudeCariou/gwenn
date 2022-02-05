@@ -19,7 +19,8 @@ Please cite:
 
 Created on Fri Jan 28 18:41:44 2022
 
-@author: admincariou
+@author:    Claude Cariou - Univ Rennes/Enssat, CNRS-IETR/MULTIP - Lannion, France
+            claude.cariou@univ-rennes1.fr
 """
 
 import numpy as np

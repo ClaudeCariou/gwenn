@@ -26,7 +26,8 @@ Please cite:
 
 Created on Fri Feb 04 15:29:00 2022
 
-@author: admincariou
+@author:    Claude Cariou - Univ Rennes/Enssat, CNRS-IETR/MULTIP - Lannion, France
+            claude.cariou@univ-rennes1.fr
 """
 
 
@@ -51,7 +52,7 @@ def show_exmplrs(im,labs):
     imexplrs = np.reshape(imexmplrs,(sizx, sizy, nbands))
     plt.figure()
     plt.imshow(np.uint8(imexplrs))
-    plt.title('segmented image w/ exemplars', fontdict=None, loc='center')
+    plt.title('Cluster exemplars', fontdict=None, loc='center')
     imseg = data[np.uint32(labs)]
     imseg = np.reshape(imseg,(sizx, sizy, nbands))
     return imseg
@@ -89,7 +90,6 @@ def MR_gwenn(im, nLevel=3, K=5):
 
     fullRecon = cA_dict['layer_' + str(nLevel-1)]
     fullRecon = np.transpose(fullRecon,(1,2,0)) # bands last
-    fullRecon_old = fullRecon
 
     for iLevel in range(nLevel-1,-1,-1):
         print('iLevel = ', iLevel)
@@ -132,12 +132,15 @@ def main():
     impath = "./images" #only one png image in this folder
     im = load_imgs.load_imgs(impath)
 
+    # Choose here the image you wish to segment
+    im = im[1]
+
     plt.figure()
     plt.imshow(np.uint8(im))
     plt.title('Original image', fontdict=None, loc='center')
 
-    nLevel = 4
-    K = 10
+    nLevel = 2      #<<<<<<<<<<<<<<< change the number of DWT levels here
+    K = 5           #<<<<<<<<<<<<<<< change the number of nearest neighbors here
 
     start_time = time.time()
     imseg, idx, labs = MR_gwenn(im, nLevel, K)
